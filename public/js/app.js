@@ -135,7 +135,7 @@ async function enterFamily(){
 function shell(){
   return `<div class="app-shell">
   <header class="app-header">
-    <div class="brand"><span class="crest small"><img src="./assets/crest.svg" alt="Wappen"></span><div><b>${CONFIG.family.title}</b><small>${CONFIG.family.subtitle}</small></div></div>
+    <button class="brand" data-home title="Zur Startansicht"><span class="crest small"><img src="./assets/crest.svg" alt="Wappen"></span><span class="brand-text"><b>${CONFIG.family.title}</b><small>${CONFIG.family.subtitle}</small></span></button>
     <nav>
       <button data-view="tree">Stammbaum</button>
       <button data-view="me">Mein Profil</button>
@@ -171,6 +171,7 @@ function showShell(view){
 }
 
 function bindShell(){
+  document.querySelector("[data-home]")?.addEventListener("click",()=>renderView("tree"));
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{
     const v=b.dataset.view;
     if(v==="logout"){await signOut();return showLogin();}
