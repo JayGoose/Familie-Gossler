@@ -34,7 +34,7 @@ async function init(){
 
 function authShell(body){
   return `<main class="auth-shell"><section class="auth-card">
-    <div class="crests"><div class="crest">G</div></div>
+    <div class="crests"><div class="crest"><img src="./assets/crest.svg" alt="Wappen Familie Gossler"></div></div>
     <h1>${CONFIG.family.title}</h1><h2>${CONFIG.family.subtitle}</h2>
     ${body}
     <footer>Feedback: ${CONFIG.family.contactEmail} · <button class="link-button" data-privacy>Datenschutz</button></footer>
@@ -135,7 +135,7 @@ async function enterFamily(){
 function shell(){
   return `<div class="app-shell">
   <header class="app-header">
-    <div class="brand"><span class="crest small">G</span><div><b>${CONFIG.family.title}</b><small>${CONFIG.family.subtitle}</small></div></div>
+    <div class="brand"><span class="crest small"><img src="./assets/crest.svg" alt="Wappen"></span><div><b>${CONFIG.family.title}</b><small>${CONFIG.family.subtitle}</small></div></div>
     <nav>
       <button data-view="tree">Stammbaum</button>
       <button data-view="me">Mein Profil</button>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 116" role="img" aria-label="Wappen Familie Gossler">
+  <defs>
+    <linearGradient id="gshield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffdf9"/>
+      <stop offset="1" stop-color="#efe9dc"/>
+    </linearGradient>
+  </defs>
+  <!-- Wappenschild (eigene Gestaltung, kein fremdes Wappen) -->
+  <path d="M6 8 H94 V60 C94 88 72 104 50 112 C28 104 6 88 6 60 Z"
+        fill="url(#gshield)" stroke="#9b8052" stroke-width="3"/>
+  <!-- Innenlinie -->
+  <path d="M14 16 H86 V60 C86 82 68 96 50 103 C32 96 14 82 14 60 Z"
+        fill="none" stroke="#9b8052" stroke-width="1" opacity="0.55"/>
+  <!-- Häuptling (oberes Band) mit drei Sternen als schlichte Zier -->
+  <path d="M14 16 H86 V30 H14 Z" fill="#315c55" opacity="0.9"/>
+  <g fill="#e7dcc0">
+    <circle cx="34" cy="23" r="2.6"/>
+    <circle cx="50" cy="23" r="2.6"/>
+    <circle cx="66" cy="23" r="2.6"/>
+  </g>
+  <!-- Monogramm G -->
+  <text x="50" y="76" text-anchor="middle" dominant-baseline="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-weight="700"
+        font-size="46" fill="#315c55">G</text>
+</svg>
