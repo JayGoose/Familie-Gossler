@@ -1,0 +1,15 @@
+node_modules/
+.env
+.DS_Store
+*.log
+/tmp/
+
+# Private Familiendaten: NIEMALS versionieren (echte Personendaten, Kontaktdaten,
+# extrahierte Quelldokumente). Bleibt lokal, wird nur nach Auth/Code aus Supabase geladen.
+private_seed/
+
+# Lokale Python-venv fuer Datenextraktion (pypdf o.ae.)
+.venv/
+
+# Lokale Faecher-Demo mit echten (privaten) Namen: NIE versionieren.
+public/demo-graph.json

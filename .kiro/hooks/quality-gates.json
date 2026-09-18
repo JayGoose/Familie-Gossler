@@ -1,0 +1,34 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "security-audit-after-code-save",
+      "description": "Run secret/security guard after source or SQL changes.",
+      "trigger": "PostFileSave",
+      "matcher": "\\.(js|html|css|sql|ts)$",
+      "action": {
+        "type": "command",
+        "command": "python scripts/security_guard.py"
+      }
+    },
+    {
+      "name": "clone-audit-after-code-save",
+      "description": "Check required clone surfaces after source changes.",
+      "trigger": "PostFileSave",
+      "matcher": "\\.(js|html|sql|ts)$",
+      "action": {
+        "type": "command",
+        "command": "python scripts/clone_audit.py"
+      }
+    },
+    {
+      "name": "production-task-preflight",
+      "description": "Require baseline and steering awareness before spec task execution.",
+      "trigger": "PreTaskExecution",
+      "action": {
+        "type": "agent",
+        "prompt": "Before this task, read AGENTS.md, all always-included steering, and the production-finish spec. Do not weaken privacy or invent family data. State the tests you will run before editing."
+      }
+    }
+  ]
+}

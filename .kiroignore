@@ -1,0 +1,15 @@
+# Secrets and local runtime material
+.env
+.env.*
+!.env.example
+**/service-role*
+**/*service_role*
+**/secrets/**
+**/*.pem
+**/*.key
+**/.DS_Store
+
+# Sensitive family import material should only be opened deliberately
+private_seed/**
+backups/**
+exports/**

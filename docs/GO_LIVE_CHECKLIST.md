@@ -1,0 +1,21 @@
+# Go-Live-Checkliste
+
+- [ ] Supabase URL eingetragen
+- [ ] Supabase anon key eingetragen
+- [ ] Admin-E-Mail eingetragen
+- [ ] Migrationen 001–006 erfolgreich
+- [ ] Seed importiert
+- [ ] Erster Admin freigeschaltet
+- [ ] GitHub Pages aktiv
+- [ ] Gastcode gesetzt
+- [ ] Gastcode-Ablaufdatum gesetzt
+- [ ] Gast sieht keine Kontakte
+- [ ] Mitglied kann eigenes Profil ändern
+- [ ] Admin kann Nutzer freigeben
+- [ ] Passwort-Reset getestet
+- [ ] QR-Code getestet
+- [ ] QR-Scanner getestet
+- [ ] Backup getestet
+- [ ] Datenschutztext geprüft
+- [ ] Repository enthält keine Service-Role-Keys
+- [ ] Sicherheits-Guard erfolgreich

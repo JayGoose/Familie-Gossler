@@ -1,0 +1,10 @@
+{
+  "name": "gossler-family-tree",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "serve": "npx serve public -l 8080",
+    "test": "node --test tests/"
+  }
+}

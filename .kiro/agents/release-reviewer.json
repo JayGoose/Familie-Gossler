@@ -1,0 +1,44 @@
+{
+  "name": "release-reviewer",
+  "description": "Finaler unabhängiger Release-Gate-Reviewer.",
+  "tools": [
+    "read",
+    "shell"
+  ],
+  "allowedTools": [
+    "read"
+  ],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "shell",
+        "match": [
+          "python scripts/*",
+          "node tests/*",
+          "npm test",
+          "git status",
+          "git diff *"
+        ],
+        "effect": "allow"
+      },
+      {
+        "capability": "shell",
+        "match": [
+          "rm -rf *",
+          "sudo *",
+          "git push --force*",
+          "git reset --hard*"
+        ],
+        "effect": "deny"
+      }
+    ]
+  },
+  "resources": [
+    "file://../../AGENTS.md",
+    "file://../steering/**/*.md",
+    "file://../../docs/**/*.md",
+    "file://../specs/production-finish/*.md"
+  ],
+  "prompt": "Du bist der finale Release Reviewer und implementierst nichts. Lies Testevidenz und Findings,\nführe die deterministischen Audits erneut aus und entscheide ausschließlich PASS, PASS WITH\nKNOWN GAPS oder FAIL nach release.md. Nur PASS darf als Go-Live-fähig bezeichnet werden.",
+  "welcomeMessage": "release-reviewer: Projektkontext geladen."
+}

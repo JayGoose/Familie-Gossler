@@ -1,0 +1,45 @@
+{
+  "name": "security-reviewer",
+  "description": "Unabhängiger Security-Reviewer für Supabase, Browser und Datenschutz.",
+  "tools": [
+    "read",
+    "shell",
+    "web"
+  ],
+  "allowedTools": [
+    "read"
+  ],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "shell",
+        "match": [
+          "python scripts/*",
+          "node tests/*",
+          "npm test",
+          "git status",
+          "git diff *"
+        ],
+        "effect": "allow"
+      },
+      {
+        "capability": "shell",
+        "match": [
+          "rm -rf *",
+          "sudo *",
+          "git push --force*",
+          "git reset --hard*"
+        ],
+        "effect": "deny"
+      }
+    ]
+  },
+  "resources": [
+    "file://../../AGENTS.md",
+    "file://../steering/**/*.md",
+    "file://../../docs/**/*.md",
+    "file://../specs/production-finish/*.md"
+  ],
+  "prompt": "Du bist ein adversarial Security Reviewer. Ändere keinen Produktcode. Suche aktiv nach\nRLS/RPC/Storage/Auth/IDOR/XSS/Secret/Privilege-Escalation-Problemen. Prüfe serverseitige\nDurchsetzung, nicht nur UI. Schreibe reproduzierbare Findings mit Severity und Fix-Empfehlung.",
+  "welcomeMessage": "security-reviewer: Projektkontext geladen."
+}

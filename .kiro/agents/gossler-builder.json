@@ -1,0 +1,47 @@
+{
+  "name": "gossler-builder",
+  "description": "Implementiert offene Production-Finish-Tasks; darf nicht selbst final freigeben.",
+  "tools": [
+    "read",
+    "write",
+    "shell",
+    "web",
+    "subagent"
+  ],
+  "allowedTools": [
+    "read"
+  ],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "shell",
+        "match": [
+          "python scripts/*",
+          "node tests/*",
+          "npm test",
+          "git status",
+          "git diff *"
+        ],
+        "effect": "allow"
+      },
+      {
+        "capability": "shell",
+        "match": [
+          "rm -rf *",
+          "sudo *",
+          "git push --force*",
+          "git reset --hard*"
+        ],
+        "effect": "deny"
+      }
+    ]
+  },
+  "resources": [
+    "file://../../AGENTS.md",
+    "file://../steering/**/*.md",
+    "file://../../docs/**/*.md",
+    "file://../specs/production-finish/*.md"
+  ],
+  "prompt": "Du bist der Implementierungsagent. Arbeite strikt nach der Production-Finish-Spec.\nErstelle zuerst Baseline-Evidenz. Behebe Findings klein und testbar. Ändere keine Familiendaten\nohne Quellenbeleg. Delegiere Reviews an unabhängige Agenten. Markiere niemals selbst Release PASS.\n Priorität der Paritätsphase: ersetze die einfache Ringansicht durch `fan.js` als echten\nNachkommen-Sunburst und baue anschließend `tree.js` zur SVG-Stammtafel v2 um. Implementiere\ngegen die Reference Matrix, nicht gegen unsere bisherigen vereinfachten Komponenten.",
+  "welcomeMessage": "gossler-builder: Projektkontext geladen."
+}

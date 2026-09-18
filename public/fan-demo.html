@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Gossler Fächer — Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/app.css" />
+  <style>
+    body { font-family: "IBM Plex Mono", ui-monospace, monospace; margin: 0; background: #fff; color: #1a1a1a; }
+    header { padding: 12px 16px; border-bottom: 1px solid #e8e8e8; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    header h1 { font-size: 15px; font-weight: 600; margin: 0 12px 0 0; }
+    .controls { display: flex; gap: 6px; flex-wrap: wrap; }
+    button { font-family: inherit; font-size: 12px; padding: 6px 10px; border: 1px solid #d0d0d0; background: #f8f9fa; border-radius: 6px; cursor: pointer; }
+    button.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+    select { font-family: inherit; font-size: 12px; padding: 6px; border: 1px solid #d0d0d0; border-radius: 6px; }
+    #fan-container { width: 100vw; height: calc(100vh - 54px); }
+    #legend { position: fixed; right: 14px; bottom: 14px; background: rgba(255,255,255,.92); border: 1px solid #e8e8e8; border-radius: 8px; padding: 8px 10px; font-size: 11px; }
+    #note { position: fixed; left: 14px; bottom: 14px; font-size: 11px; color: #6b7280; max-width: 46vw; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Gossler Fächer — Demo</h1>
+    <div class="controls" id="colormodes">
+      <button data-mode="gender" class="active">Geschlecht</button>
+      <button data-mode="year">Geburtsjahr</button>
+      <button data-mode="name">Familienname</button>
+    </div>
+    <div class="controls">
+      <label>Zweig: <select id="family-select"></select></label>
+    </div>
+  </header>
+  <div id="fan-container"></div>
+  <div id="legend"></div>
+  <div id="note">Lokale Demo (kein Supabase). Daten aus private_seed/demo-graph.json. Klick auf ein Segment loggt die Person in der Konsole.</div>
+
+  <script type="module">
+    import { computeFamilies, pickActiveFamily, orphans } from "./js/family-model.js";
+    import Fan from "./js/fan.js";
+
+    const container = document.getElementById("fan-container");
+    const legend = document.getElementById("legend");
+    const familySelect = document.getElementById("family-select");
+
+    async function main() {
+      const res = await fetch("./demo-graph.json");
+      if (!res.ok) {
+        container.innerHTML = "<p style='padding:16px'>Demo-Daten fehlen. Bitte <code>node scripts/build_demo_graph.mjs</code> ausführen.</p>";
+        return;
+      }
+      const { people, relations } = await res.json();
+      const families = computeFamilies(people, relations);
+      const orphanIds = orphans(people, families);
+
+      // Zweigschalter füllen
+      const byId = Object.fromEntries(people.map(p => [p.id, p]));
+      familySelect.innerHTML = families.map(f => {
+        const root = byId[f.rootId];
+        const name = root ? `${root.first_name} ${root.last_name}` : f.rootId;
+        return `<option value="${f.id}">${name} (${f.size})</option>`;
+      }).join("");
+
+      Fan.init(container, {
+        onPerson: (id) => {
+          const p = byId[id];
+          console.log("Person:", id, p ? `${p.first_name} ${p.last_name} (${p.birth_date || "?"})` : "unbekannt");
+        }
+      });
+      Fan.setData(people, relations);
+
+      let active = pickActiveFamily(families);
+      familySelect.value = active.id;
+      Fan.setFamily(active);
+      updateLegend();
+
+      familySelect.addEventListener("change", () => {
+        active = families.find(f => f.id === familySelect.value);
+        Fan.setFamily(active);
+        updateLegend();
+      });
+
+      document.querySelectorAll("#colormodes button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("#colormodes button").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          Fan.setColorMode(btn.dataset.mode);
+          updateLegend();
+        });
+      });
+
+      function updateLegend() {
+        const mode = Fan.getColorMode();
+        if (mode === "gender") {
+          legend.innerHTML = "Farbe = Geschlecht: <span style='color:#9dbce6'>■</span> m &nbsp; <span style='color:#e9b1c4'>■</span> w &nbsp; <span style='color:#d2cec5'>■</span> unbekannt";
+        } else if (mode === "year") {
+          legend.innerHTML = "Farbe = Geburtsjahr: <span style='color:#457b9d'>■</span> älter → <span style='color:#e6823c'>■</span> jünger";
+        } else {
+          legend.innerHTML = "Farbe = Familienname: Namensträger hervorgehoben, Rest grau";
+        }
+        legend.innerHTML += `<br>Waisen (nicht im Zweig erreichbar): ${orphanIds.length}`;
+      }
+    }
+    main();
+  </script>
+</body>
+</html>
