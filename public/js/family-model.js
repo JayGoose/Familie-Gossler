@@ -150,3 +150,52 @@ export function pickActiveFamily(families, preferredId = loadPreferredFamilyId()
   }
   return families[0];
 }
+
+// --- Default-Einstieg (Fokus-Wurzel) -------------------------------------
+// Johannes-Feedback #3: Der Faecher soll standardmaessig an einer breit
+// verzweigten Person einsteigen (Wilhelm Goßler *1866), NICHT an der duennen
+// fruehen Linie Claus->Wilhelm (je Generation nur 1 Person). Die fruehe Linie
+// bleibt im Datenbestand und ist ueber den Zweig-/Fokusschalter erreichbar.
+// Die Fokus-Wurzel ist eine ANSICHTS-Entscheidung; sie aendert die Daten nicht.
+export const DEFAULT_FOCUS_ROOT_ID = "wilhelm1866";
+const FOCUS_STORAGE_KEY = "gossler_focus";
+
+/**
+ * Liefert die Fokus-Wurzel fuer einen Zweig: die Person, ab der der Faecher
+ * gezeichnet wird. Bevorzugt (1) eine gemerkte Auswahl, (2) den globalen
+ * Default (falls Blutsmitglied dieses Zweigs), (3) die eigentliche Zweigwurzel.
+ * @param family      Familie aus computeFamilies
+ * @param preferredId optionale explizite Fokusperson
+ */
+export function focusRootFor(family, preferredId = loadFocusRootId()) {
+  if (!family) return null;
+  if (preferredId && family.bloodIds.has(preferredId)) return preferredId;
+  if (family.bloodIds.has(DEFAULT_FOCUS_ROOT_ID)) return DEFAULT_FOCUS_ROOT_ID;
+  return family.rootId;
+}
+
+export function loadFocusRootId() {
+  try { return localStorage.getItem(FOCUS_STORAGE_KEY) || null; } catch (_) { return null; }
+}
+export function saveFocusRootId(id) {
+  try { if (id) localStorage.setItem(FOCUS_STORAGE_KEY, id); } catch (_) {}
+}
+
+/**
+ * Blutsverwandte Nachkommen AB einer Fokus-Wurzel (inkl. ihr selbst),
+ * beschraenkt auf die Blutsverwandten des Zweigs. Fuer den Fächer, damit
+ * die duenne obere Linie ausgeblendet werden kann, ohne Daten zu verlieren.
+ */
+export function bloodSubtreeFrom(people, relations, family, focusId) {
+  const g = indexGraph(people, relations);
+  const start = focusId && family?.bloodIds.has(focusId) ? focusId : family?.rootId;
+  const seen = new Set([start]);
+  const stack = [start];
+  while (stack.length) {
+    const x = stack.pop();
+    for (const c of g.children.get(x) || []) {
+      if (family.bloodIds.has(c) && !seen.has(c)) { seen.add(c); stack.push(c); }
+    }
+  }
+  return seen;
+}

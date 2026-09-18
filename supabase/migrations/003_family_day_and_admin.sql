@@ -5,7 +5,7 @@
 
 create or replace function public.validate_family_day_code(p_code text)
 returns boolean
-language sql stable security definer set search_path=public
+language sql stable security definer set search_path=public, extensions
 as $$
 select coalesce(
   crypt(p_code, family_day_code_hash)=family_day_code_hash
@@ -30,7 +30,7 @@ end $$;
 
 create or replace function public.admin_set_family_day_code(p_code text,p_valid_until date)
 returns boolean
-language plpgsql security definer set search_path=public
+language plpgsql security definer set search_path=public, extensions
 as $$
 begin
   if not public.is_admin() then raise exception 'admin only'; end if;

@@ -113,3 +113,97 @@ Referenz-Matrix, Familienmodell, Fächer-Kern). Alles neustart-fest, Kontext lie
 - `public/fan-demo.html`, `public/demo-graph.json`, `scripts/build_demo_graph.mjs` sind reine
   lokale Demo-Artefakte. demo-graph.json ist gitignored. fan-demo.html kann vor Release entfernt
   oder als Entwickler-Vorschau behalten werden.
+
+## Tasks 9–13 (Fächer-Interaktion, Zeitstrahl, Stammtafel v2, Gotha, App-Sync): abgeschlossen (2026-09-18)
+84 Node-Tests grün, clone_audit PASS.
+
+- **Task 9 Fächer-Interaktion** `public/js/fan.js` neu: Pan (Drag), Zoom (Wheel, viewBox),
+  Semantic Zoom (fern/mittel/nah nach Bogenlänge), Rotation (vertikales Rändelrad, 720px=Umdrehung),
+  centerOn/panTo/fitToHighlight-Animation, Legenden je Farbmodus. Reine Logik in
+  `public/js/fan-interaction.js` (15 Tests).
+  - Johannes-Feedback umgesetzt: (1) Geburtsjahre an Labels (mittel: „Wilhelm * 1866", nah:
+    voller Name + geb.-Name + „* 1866 † 1934"); (2) Lesbarkeit: `cap()`-Pixeldeckel, Namen je
+    Zoomstufe gekürzt, `readableTextRotation` verhindert Kopfstand; (3) Default-Einstieg auf
+    `wilhelm1866` via `family-model.focusRootFor` + `bloodSubtreeFrom` — dünne frühe Linie
+    Claus→Wilhelm im Fächer ausgeblendet, im Datenbestand erhalten, über Zweig-/Fokusschalter
+    erreichbar (6 Tests).
+- **Task 10 Zeitstrahl** `public/js/fan-timeline.js` (nur year-Modus): Drag 6px/Jahr,
+  Wheel 3 Jahre, Jahresmarke, `.fan-future` opacity 0, fehlende Geburtsjahre geschätzt
+  (Eltern+30 / Kind−30 / Partner, Kettenauflösung). 9 Tests. UI-Leiste in `views.js`.
+- **Task 11 Stammtafel v2** `public/js/tree.js` (SVG) + `public/js/tree-layout.js`:
+  Person+Partner-Einheiten, kinderlose Geschwister gestapelt (MAX_STACK), konturbasiertes
+  Tidy-Layout, orthogonale Kanten (Sammelschiene), Generationsbänder (röm. Ziffern), Collapse,
+  Minimap, Semantic Zoom, Pan/Zoom, Highlight+fitToHighlight. API: init/render/centerOn/fitAll/
+  highlightConnection/clearHighlight/collapse/getZoom/getBBox. 10 Tests. Ersetzt alte HTML-Grid.
+- **Task 12 Gotha** `public/js/gotha.js` + `public/js/gotha-model.js`: eingerückt/klappbar,
+  röm. Ziffern, Partner ∞/⚮ mit (* Jahr), Geschwister nach Jahr, „Alle ausklappen"/„Bis Gen. III",
+  scrollTo(id) mit Aufklappen+Blinken, highlightConnection. 8 Tests. Gleiche Datenquelle+Zweig.
+- **Task 13 App-Sync** `public/js/views.js`: 5-View-Switch (Fächer gender/year/name, Gotha,
+  Stammtafel), aktive Familie + Ansicht in localStorage (`gossler_view`, `gossler_family`),
+  Zweigschalter (≥2 Zweige), „Im Stammbaum zeigen" (`gossler:show-in-tree`), Highlight synchron
+  (`gossler:highlight-connection`) über Fächer/Tree/Gotha, Waisen-Pille, Auto-Zweigwechsel bei
+  Personenauswahl. `app.js`: Nav auf einheitliche Stammbaum-Ansicht umgestellt (Legacy ring/
+  generation/timeline aus Nav entfernt; ring.js bleibt als veraltet im Repo, nicht im Switch).
+- **Render-Smoke-Test** `tests/render-smoke.test.mjs`: rendert Fächer(3 Modi+Zeitstrahl),
+  Stammtafel, Gotha und Views(5 Ansichten+Highlight+showInTree) gegen den echten Seed in einem
+  dependency-freien DOM-Shim — fängt Integrations-/Laufzeitfehler ohne Browser. 4 Tests.
+- Demo: `public/views-demo.html` mountet die volle Views-Orchestrierung (lokal, gitignored-Daten).
+
+### Noch offen: Tasks 14–20
+14. Auth/Gast/Admin E2E. 15. Profil/Vita/Artikel/Beziehungen (article.js). 16. Accessibility/Mobile.
+17. Backup/Restore + Deploy-Härtung. 18. Differential Visual QA (Browser, braucht playwright-cli
+    oder Supabase-Projekt — aktuell nicht installiert). 19. Unabhängige Reviews. 20. Release Gate.
+- OFFEN (Umgebung): playwright-cli/Chromium nicht installiert, kein Supabase-Projekt konfiguriert.
+  Echte Live-Verifikation (Auth-Flows, Visual-Diff mobil, RLS im echten Backend) braucht diese
+  Umgebung. DOM-Smoke deckt Render-/Integrationsfehler ab, ersetzt aber keine Pixel-/Live-Prüfung.
+
+## Tasks 14–20 (Auth/Profil/A11y/Backup-Deploy/QA/Reviews/Gate): abgearbeitet (2026-09-18)
+Gesamtstand: **92 Node-Tests grün, clone_audit PASS, security_guard PASS.**
+Release-Entscheidung: **PASS WITH KNOWN GAPS** (kein Go-Live ohne volles PASS am Live-Backend).
+Details im `docs/KIRO_RELEASE_REPORT.md`.
+
+- **Task 15 Profil/Vita/Verbindungen:** `public/js/connection-order.js` (feste Referenz-Reihenfolge
+  Eltern→Partner→Ex→Kinder→Geschwister, je Gruppe nach Jahr) in `profile.js` verdrahtet. Ganze-Seite-
+  Artikel über das `.full`-Profilpanel (Properties + volle Markdown-Vita). 8 Tests.
+  - **P1-BUG behoben:** `public/js/markdown.js` enthielt ein literales `\n` im Quelltext → Modul
+    war nicht parsebar → die ganze App lud nicht (profile.js importiert es). Zusätzlich rendern
+    geordnete Listen jetzt mit echter Nummer, `---`→`<hr>` ergänzt. XSS-Escape + nur-http(s)-Links
+    getestet.
+- **Task 16 A11y/Mobile:** ARIA-Rollen/Labels an Fächer-/Tree-/Gotha-Segmenten und View-Switch;
+  `focus-visible`, `prefers-reduced-motion`; Mobile-Breakpoints 320/375/430px für View-Switch,
+  Legende, Zeitstrahl, Zweigschalter, Minimap (`public/css/app.css`). Screenreader-/Kontrast-Livecheck offen.
+- **Task 17 Backup/Deploy-Härtung:** `docs/DEPLOY.md` Schritt 3 korrigiert (zeigte auf `config.js`
+  statt der echten Konfigfläche `runtime-config.js`/`window.GOSSLER_RUNTIME`). Go-Live-Checkliste auf
+  Migrationen 001–008 aktualisiert. `admin_export_family()` vorhanden; praktischer Restore braucht Live-Backend.
+- **Task 18 Visual QA:** BLOCKED-NEEDS-ENV (kein Browser). Ersatzweise dependency-freier
+  `tests/render-smoke.test.mjs` (4 Tests) als Render-/Integrationsnachweis.
+- **Task 19 Reviews:** 4 parallele Reviewer-Subagenten gestartet. Auf diesem Install wurden 3
+  Transkripte nicht persistiert und der Security-Reviewer analysierte ein HALLUZINIERTES Schema
+  (nannte `relationships/rel_type`, `window.__ENV__`, `tests/rls.test.js` — existiert hier nicht).
+  → Findings verworfen, alle Punkte vom Hauptagenten DIREKT gegen die echten Dateien nachgeprüft:
+  RLS auf allen 8 Tabellen, Kontakte separat (`people_contacts`, nur member/admin), Gast-Snapshot
+  ohne Kontaktfelder + code-gated, Familientag-Code bcrypt+rate-limitiert per Client-Fingerprint,
+  keine Secrets committet. Ein echter Zweitreview durch eine unabhängige Instanz bleibt empfohlen.
+- **Task 20 Release-Gate:** siehe `docs/KIRO_RELEASE_REPORT.md`. Reference-Matrix-Zeilen von TODO
+  auf IMPL gesetzt (nicht PASS — PASS braucht Live-/Mobil-Abnahme).
+- **Reales offenes Finding (MEDIUM) — BEHOBEN (2026-09-18):** `guest_family_snapshot` prüfte intern
+  die NICHT-rate-limitierte `validate_family_day_code`. Migration `009_guest_snapshot_ratelimit.sql`
+  leitet den Snapshot über `validate_family_day_code_rl(p_code,p_fingerprint)` und entzieht die alte
+  1-Argument-Variante; `api.js` übergibt den Client-Fingerprint. Live-Gegenprüfung am Backend offen.
+
+## Supabase Go-Live (2026-09-18) — Schritte 1-3 ERLEDIGT
+Projekt-Ref: `wzdlosfytcaglunybvrk` (Region eu-west-2). Setup vom Agenten via DB-Connection
+(Transaction-Pooler, Port 6543) durchgeführt, weil manuelles SQL-Kopieren scheiterte.
+- **Schritt 1** Konto + Projekt „Familie-Gossler" (privat) angelegt. GitHub-Repo `JayGoose/Familie-Gossler`
+  existiert bereits (privat; für Pages/Schritt 6). ACHTUNG: `private_seed/` NIE dorthin pushen.
+- **Schritt 2** Migrationen 001-009 eingespielt. **Zwei reale Bugs dabei gefunden und behoben:**
+  1. `crypt(text,text) does not exist` (42883): pgcrypto liegt bei Supabase im Schema `extensions`,
+     nicht `public`. Fix: `validate_family_day_code` + `admin_set_family_day_code` bekommen
+     `set search_path=public, extensions` (001 zusätzlich `create extension ... with schema public`).
+  2. Ungültiges Datum `1969-02-29` (kein Schaltjahr) bei Benita Schauer (`benita1969`). Regelkonform
+     behoben: Jahr 1969 behalten, Tag/Monat verworfen (`birth`:"1969"), status `unvollständig`,
+     Notiz + openQuestions-Eintrag. NICHTS erfunden.
+- **Schritt 3** Seed importiert: **107 Personen, 167 Beziehungen, 0 Kontakte** in der Live-DB. Verifiziert.
+- **NOCH OFFEN (nur der Nutzer kann):** Schritt 4 anon-Key + URL in `public/runtime-config.js`;
+  Schritt 5 erstes Konto registrieren + im SQL zu admin machen; Familientag-Code setzen; Schritt 6
+  GitHub Pages; dann Live-Test Auth/Gast/Admin + mobile. DB-Passwort nach Setup neu setzen (Hygiene).

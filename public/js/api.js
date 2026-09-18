@@ -14,7 +14,8 @@ export async function loadFamily() {
 
   if (guest?.code && Date.now() < guest.expiresAt) {
     const { data, error } = await sb.rpc("guest_family_snapshot", {
-      p_code: guest.code
+      p_code: guest.code,
+      p_fingerprint: clientFingerprint()
     });
     if (error) throw error;
     return {

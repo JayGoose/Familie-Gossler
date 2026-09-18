@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Gossler — Ansichten-Demo (5 Views)</title>
+  <link rel="stylesheet" href="./css/app.css" />
+  <style>
+    body{margin:0;background:var(--bg)}
+    .demo-head{padding:10px 16px;background:#fffefb;border-bottom:1px solid var(--line);font:600 14px Inter}
+    .demo-head small{color:var(--muted);font-weight:400}
+    #view{padding:12px;min-height:80vh}
+  </style>
+</head>
+<body>
+  <div class="demo-head">Gossler — Ansichten-Demo · <small>Fächer (Geschlecht/Jahr/Name), Gotha, Stammtafel · Standard-Einstieg Wilhelm *1866 · lokale Demo, kein Supabase</small></div>
+  <main id="view" class="view view-tree"></main>
+  <script type="module">
+    import Views from "./js/views.js";
+    async function main(){
+      const res = await fetch("./demo-graph.json");
+      if(!res.ok){ document.getElementById("view").innerHTML="<p style='padding:16px'>Demo-Daten fehlen: <code>node scripts/build_demo_graph.mjs</code></p>"; return; }
+      const { people, relations } = await res.json();
+      const byId = Object.fromEntries(people.map(p=>[p.id,p]));
+      Views.mountViews(document.getElementById("view"), people, relations, {
+        meId: "johannes1988",
+        onPerson: (id)=>{ const p=byId[id]; console.log("Profil:", id, p?`${p.first_name} ${p.last_name} (${p.birth_date||"?"})`:"?"); }
+      });
+      // Fuer manuelle Verifikation in der Konsole:
+      window.Views = Views;
+    }
+    main();
+  </script>
+</body>
+</html>

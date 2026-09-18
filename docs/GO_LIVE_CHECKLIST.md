@@ -3,7 +3,7 @@
 - [ ] Supabase URL eingetragen
 - [ ] Supabase anon key eingetragen
 - [ ] Admin-E-Mail eingetragen
-- [ ] Migrationen 001–006 erfolgreich
+- [ ] Migrationen 001–008 erfolgreich
 - [ ] Seed importiert
 - [ ] Erster Admin freigeschaltet
 - [ ] GitHub Pages aktiv

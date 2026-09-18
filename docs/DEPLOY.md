@@ -25,10 +25,11 @@ python scripts/make_seed_sql.py private_seed/gossler.seed.json > /tmp/gossler_se
 
 ## 3. Frontend konfigurieren
 
-In `public/js/config.js`:
-- `SUPABASE_URL_HIER_EINTRAGEN`
-- `SUPABASE_ANON_KEY_HIER_EINTRAGEN`
-- `ADMIN_EMAIL_HIER_EINTRAGEN`
+In `public/runtime-config.js` die drei Werte eintragen (die Anwendung liest sie
+zur Laufzeit über `window.GOSSLER_RUNTIME`; `config.js` referenziert sie nur):
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `ADMIN_EMAIL`
 
 Der Supabase `anon` Key darf im Browser stehen. Niemals den Service Role Key eintragen.
 

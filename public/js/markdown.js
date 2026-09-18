@@ -12,7 +12,9 @@ export function renderMarkdown(md = "") {
   x = x.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   x = x.replace(/\*(.+?)\*/g, "<em>$1</em>");
   x = x.replace(/^> (.*)$/gm, "<blockquote>$1</blockquote>");
-  x = x.replace(/^\- (.*)$/gm, "<div class='md-bullet'>• $1</div>");\n  x = x.replace(/^\\d+\\. (.*)$/gm, "<div class='md-numbered'>1. $1</div>");
+  x = x.replace(/^---$/gm, "<hr>");
+  x = x.replace(/^\- (.*)$/gm, "<div class='md-bullet'>• $1</div>");
+  x = x.replace(/^(\d+)\. (.*)$/gm, "<div class='md-numbered'>$1. $2</div>");
   x = x.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, `<a href="$2" target="_blank" rel="noopener">$1</a>`);
   x = x.replace(/\n{2,}/g, "</p><p>");
   return `<p>${x}</p>`;

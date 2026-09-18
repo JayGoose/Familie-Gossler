@@ -4,6 +4,7 @@ import { indexGraph, relationshipSummary } from "./relationship.js";
 import { canEditPerson, canEditRelations, canDeletePlaceholder, canReadContacts } from "./permissions.js";
 import { savePerson, saveVita, addRelation, deletePlaceholder, auditEvent, uploadProfilePicture, removeProfilePicture, signedProfilePictureUrl } from "./api.js";
 import { renderMarkdown, wrapSelection } from "./markdown.js";
+import { orderedConnections } from "./connection-order.js";
 import { showQrModal } from "./qr.js";
 
 function personName(p){return [p?.first_name,p?.last_name].filter(Boolean).join(" ");}
@@ -55,9 +56,10 @@ export function openProfile(personId, {full=false}={}) {
 
     <section><h3>Verbindungen</h3>
       <div class="connection-list">
-        ${parents.map(x=>`<button data-person="${x.id}">Elternteil · ${personName(x)}</button>`).join("")}
-        ${partners.map(x=>`<button data-person="${x.id}">${x.former?"⚮":"∞"} ${personName(x)}</button>`).join("")}
-        ${children.map(x=>`<button data-person="${x.id}">Kind · ${personName(x)}</button>`).join("")}
+        ${orderedConnections(state.people,state.relations,personId).map(c=>{
+          const label={parent:"Elternteil · ",partner:"∞ ","ex-partner":"⚮ ",child:"Kind · ",sibling:(c.half?"Halbgeschwister · ":"Geschwister · ")}[c.kind]||"";
+          return `<button data-person="${c.id}">${label}${personName(c.person)}</button>`;
+        }).join("")}
       </div>
       ${canEditRelations()?`<button data-add-connection>+ Neue Verbindung</button>`:""}
     </section>
@@ -69,6 +71,7 @@ export function openProfile(personId, {full=false}={}) {
   overlay.querySelectorAll("[data-person]").forEach(x=>x.onclick=()=>openProfile(x.dataset.person));
   overlay.querySelector("[data-full-page]")?.addEventListener("click",()=>document.dispatchEvent(new CustomEvent("gossler:open-full-profile",{detail:{personId}})));
   overlay.querySelector("[data-show-tree]")?.addEventListener("click",()=>{overlay.remove();document.dispatchEvent(new CustomEvent("gossler:show-in-tree",{detail:{personId}}));});
+  overlay.querySelector("[data-relationship]")?.addEventListener("click",()=>{overlay.remove();document.dispatchEvent(new CustomEvent("gossler:highlight-connection",{detail:{meId:state.meId,otherId:personId}}));});
   overlay.querySelector("[data-qr]")?.addEventListener("click",()=>showQrModal(personId));
   overlay.querySelector("[data-edit]")?.addEventListener("click",()=>editPerson(p));
   overlay.querySelector("[data-vita]")?.addEventListener("click",()=>editVita(p));

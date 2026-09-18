@@ -7,7 +7,8 @@ function roman(n) {
   let s=""; for(const [c,v] of map) while(n>=v){s+=c;n-=v;} return s;
 }
 
-const collapsedGenerations=new Set();\nexport function renderGeneration(container, onPerson) {
+const collapsedGenerations=new Set();
+export function renderGeneration(container, onPerson) {
   const g=indexGraph(state.people,state.relations);
   const root=state.treeRootId||state.people[0]?.id;
   const depth=new Map([[root,0]]),q=[root];

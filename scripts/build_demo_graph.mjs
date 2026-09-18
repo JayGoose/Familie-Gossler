@@ -16,9 +16,11 @@ const people = seed.people.map(p => {
     id: p.id,
     first_name: parts[0] || "",
     last_name: parts.length > 1 ? parts[parts.length - 1] : "",
+    birth_name: p.birth_name || null,
     gender: p.gender || "u",
     birth_date: p.birth || null,
     death_date: p.death || null,
+    is_registered: false,
     status: p.status
   };
 });

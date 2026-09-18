@@ -54,3 +54,98 @@ label{display:grid;gap:5px;margin:11px 0}input,select,textarea{padding:11px;bord
 .fan-former { fill: #9a8f6a; }
 .fan-hl { stroke: #e63946 !important; stroke-width: 3 !important; opacity: 1 !important; }
 .fan-dim { opacity: 0.15; }
+
+/* --- Fächer Task 9/10 Ergänzungen -------------------------------------- */
+.fan-registered { stroke: #1a1a1a; stroke-width: 2.2; }
+.fan-future { opacity: 0; pointer-events: none; transition: opacity 200ms ease; }
+.fan-center-label { font-weight: 600; }
+.fan-center-year { fill: var(--muted); }
+.fan-name-line { font-weight: 600; }
+.fan-year-line { fill: #6e7672; }
+.fan-knob { cursor: ns-resize; }
+.fan-knob:hover { fill: #00000030; }
+
+/* --- Ansichtsumschalter (View-Switch-Pille) ---------------------------- */
+.view-switch{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;display:flex;gap:2px;background:#fffefb;border:1px solid var(--line);border-radius:999px;padding:4px;box-shadow:var(--shadow)}
+.view-switch button{border:0;background:none;border-radius:999px;padding:8px 12px;font-size:13px;line-height:1}
+.view-switch button.active{background:var(--accent);color:#fff}
+.fan-legend{position:fixed;right:16px;bottom:16px;z-index:55;background:rgba(255,253,249,.94);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:11px;max-width:44vw}
+.fan-legend .lg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:middle;margin:0 2px}
+.orphan-pill{position:fixed;left:16px;bottom:16px;z-index:55;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12px}
+.timeline-bar{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:58;display:flex;gap:10px;align-items:center;background:#fffefb;border:1px solid var(--line);border-radius:12px;padding:8px 14px;box-shadow:var(--shadow)}
+.timeline-bar .year{font:700 18px Georgia;color:var(--danger);min-width:66px;text-align:center}
+.timeline-bar input[type=range]{width:min(360px,50vw)}
+
+/* --- Stammtafel v2 (SVG Tidy-Layout) ----------------------------------- */
+.tree2-wrap{position:relative;overflow:hidden;min-height:74vh;background:#faf9f5;border:1px solid var(--line);border-radius:12px}
+.tree2-svg{width:100%;height:74vh;display:block;touch-action:none;cursor:grab}
+.tree2-svg:active{cursor:grabbing}
+.tree2-band{fill:#00000006}
+.tree2-band.alt{fill:#00000000}
+.tree2-genlabel{font:700 13px Georgia;fill:var(--muted)}
+.tree2-unit .card{fill:#fff;stroke:#ccc;stroke-width:1.5;rx:8}
+.tree2-unit.m .card{stroke:var(--male)}
+.tree2-unit.f .card{stroke:var(--female)}
+.tree2-unit.dead .card{opacity:.5}
+.tree2-unit.me .card{stroke:#e63946;stroke-width:2.5}
+.tree2-unit .pname{font:600 12px Inter;fill:var(--ink)}
+.tree2-unit .pyears{font:10px Inter;fill:var(--muted)}
+.tree2-unit .partner{fill:#f4f2ec;stroke:#e0dacd}
+.tree2-unit .ptname{font:11px Inter;fill:#5b6560}
+.tree2-edge{fill:none;stroke:#b8b0a2;stroke-width:1.4}
+.tree2-edge.hl{stroke:var(--path);stroke-width:2.6}
+.tree2-unit.tree-hl .card{stroke:var(--path);stroke-width:3}
+.tree2-unit.tree-dim{opacity:.22}
+.tree2-collapse{fill:#eef1ee;stroke:#c8c0b3;cursor:pointer}
+.tree2-collapse text{font:11px Inter;fill:var(--ink)}
+.tree2-stack{fill:#fbfaf6;stroke:#d8d1c5;stroke-dasharray:2 2}
+.tree2-minimap{position:absolute;right:12px;top:12px;width:150px;height:100px;background:#fff;border:1px solid #ccc;border-radius:7px;box-shadow:0 2px 8px #0002;overflow:hidden}
+.tree2-minimap rect.node{fill:#9aa39c}
+.tree2-minimap rect.vp{fill:none;stroke:#e63946;stroke-width:2}
+
+/* --- Gotha-Verzeichnis ------------------------------------------------- */
+.gotha{max-width:920px;margin:auto;font-family:Georgia,serif}
+.gotha .toolbar{display:flex;gap:8px;margin-bottom:12px;font-family:Inter}
+.gotha ul{list-style:none;margin:0;padding-left:20px;border-left:1px solid #e6dfd2}
+.gotha>ul{padding-left:0;border:0}
+.gotha li{margin:3px 0}
+.gotha .row{display:flex;gap:8px;align-items:baseline;flex-wrap:nowrap}
+.gotha .toggle{border:0;background:none;width:18px;padding:0;color:var(--accent);font-size:12px}
+.gotha .gen{color:var(--accent2);font-weight:700;font-size:11px;min-width:26px}
+.gotha .nm{cursor:pointer}
+.gotha .nm:hover{text-decoration:underline}
+.gotha .yr{color:var(--muted);font-size:12px;font-family:Inter}
+.gotha .sp{color:#5b6560;font-size:13px}
+.gotha .collapsed>ul{display:none}
+.gotha li.hl>.row{background:#fbf5df;border-radius:6px}
+@keyframes gotha-blink{0%,100%{background:transparent}50%{background:#fff2c2}}
+.gotha li.blink>.row{animation:gotha-blink 1.1s ease 2}
+
+/* --- Accessibility (Task 16) ------------------------------------------- */
+.fan-seg:focus-visible,.tree2-unit:focus-visible,.gotha .nm:focus-visible,
+.view-switch button:focus-visible,.tree2-collapse:focus-visible{
+  outline:3px solid var(--path);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){
+  .fan-seg,.fan-future,.gotha li.blink>.row{transition:none!important;animation:none!important}
+}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+/* --- Mobile (320/375/430) --------------------------------------------- */
+@media(max-width:480px){
+  #view-canvas{height:66vh!important}
+  .tree2-svg{height:66vh}
+  .view-switch{bottom:10px;padding:3px;gap:1px}
+  .view-switch button{padding:8px 10px;font-size:15px}
+  .fan-legend{left:10px;right:10px;bottom:70px;max-width:none;font-size:10px}
+  .timeline-bar{bottom:112px;padding:6px 10px}
+  .timeline-bar input[type=range]{width:48vw}
+  #family-switch{top:auto!important;bottom:150px;left:10px!important}
+  .orphan-pill{bottom:70px;left:10px}
+  .tree2-minimap{width:96px;height:64px}
+  .gotha ul{padding-left:12px}
+  .profile-panel,.modal-card{padding:14px}
+}
+@media(max-width:360px){
+  .view-switch button{padding:7px 8px}
+  .app-header nav button{font-size:11px;padding:5px 6px}
+}

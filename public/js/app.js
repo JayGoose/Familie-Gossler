@@ -3,10 +3,8 @@ import { CONFIG } from "./config.js";
 import { state, setState } from "./state.js";
 import { restoreAccess, signIn, signUp, requestPasswordReset, updatePassword, enterGuestMode, signOut } from "./auth.js";
 import { loadFamily, getMyProfile, setProfilePerson, createMyPerson, redeemFamilyCode, trackUsage } from "./api.js";
-import { renderTree, roots } from "./tree.js";
-import { renderRing } from "./ring.js";
-import { renderGeneration } from "./generation.js";
-import { renderTimeline } from "./timeline.js";
+import { roots } from "./tree.js";
+import Views from "./views.js";
 import { openProfile } from "./profile.js";
 import { addRelation } from "./api.js";
 import { showQrModal, startQrScanner } from "./qr.js";
@@ -140,9 +138,6 @@ function shell(){
     <div class="brand"><span class="crest small">G</span><div><b>${CONFIG.family.title}</b><small>${CONFIG.family.subtitle}</small></div></div>
     <nav>
       <button data-view="tree">Stammbaum</button>
-      <button data-view="ring">Ring</button>
-      <button data-view="generation">Generationen</button>
-      <button data-view="timeline">Zeitstrahl</button>
       <button data-view="me">Mein Profil</button>
       <button data-view="qr">Mein QR-Code</button>
       <button data-view="scan">QR scannen</button>
@@ -196,10 +191,7 @@ function renderView(view){
   state.view=view;
   document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
   outlet.className=`view view-${view}`;
-  if(view==="tree")return renderTree(outlet,id=>openProfile(id));
-  if(view==="ring")return renderRing(outlet,id=>openProfile(id));
-  if(view==="generation")return renderGeneration(outlet,id=>openProfile(id));
-  if(view==="timeline")return renderTimeline(outlet,id=>openProfile(id));
+  if(view==="tree")return Views.mountViews(outlet,state.people,state.relations,{meId:state.meId,onPerson:id=>openProfile(id)});
   if(view==="admin")return renderAdmin(outlet);
 }
 
@@ -279,7 +271,8 @@ function showPrivacy(inApp=false){
 }
 
 
-document.addEventListener("gossler:show-in-tree",e=>{const id=e.detail?.personId;if(!id)return;setState({selectedId:id});showShell("tree");setTimeout(()=>document.querySelector(`[data-person="${CSS.escape(id)}"]`)?.scrollIntoView({behavior:"smooth",block:"center",inline:"center"}),80);});
+document.addEventListener("gossler:show-in-tree",e=>{const id=e.detail?.personId;if(!id)return;setState({selectedId:id});showShell("tree");setTimeout(()=>Views.showInTree(id,{view:"tree"}),80);});
+document.addEventListener("gossler:highlight-connection",e=>{const {meId,otherId}=e.detail||{};if(!meId||!otherId)return;setState({selectedId:otherId});if(state.view!=="tree")showShell("tree");setTimeout(()=>Views.highlightConnection(meId,otherId),80);});
 document.addEventListener("gossler:open-full-profile",e=>{const id=e.detail?.personId;if(!id)return;location.hash=`person=${encodeURIComponent(id)}`;openProfile(id,{full:true});});
 document.addEventListener("gossler:ring-action",async e=>{const {action,targetId}=e.detail||{};if(!targetId)return;if(action==="relationship"){setState({selectedId:targetId});return openProfile(targetId);}if(!["member","admin"].includes(state.access))return alert("Zum Bearbeiten ist ein freigegebenes Familienkonto erforderlich.");const other=prompt("Personen-ID für die neue Verbindung:");if(!other)return;try{if(action==="child")await addRelation(targetId,other,"parent",false);if(action==="partner")await addRelation(targetId,other,"partner",false);if(action==="sibling"){const rels=state.relations.filter(r=>r.relation_type==="parent"&&r.person_b===targetId);if(!rels.length)throw new Error("Keine Eltern hinterlegt.");for(const r of rels)await addRelation(r.person_a,other,"parent",false);}location.reload();}catch(err){alert(err.message);}});
 

@@ -12,4 +12,9 @@ private_seed/
 .venv/
 
 # Lokale Faecher-Demo mit echten (privaten) Namen: NIE versionieren.
+# (Nur die Daten-Datei enthaelt echte Namen; die Demo-HTML-Seiten sind reiner
+#  Code und bleiben versioniert, damit git sie wiederherstellen kann.)
 public/demo-graph.json
+
+# Lokale Kiro-/MCP-Einstellungen (Projekt-Referenz, nicht oeffentlich)
+.kiro/settings/

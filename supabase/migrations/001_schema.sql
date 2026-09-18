@@ -1,6 +1,10 @@
 
 -- 001_schema.sql
-create extension if not exists pgcrypto;
+-- pgcrypto liefert crypt()/gen_salt() (Familientag-Code-Hash). In aktuellen
+-- Supabase-Projekten liegt die Extension sonst im Schema "extensions", das
+-- NICHT im search_path=public der SECURITY-DEFINER-Funktionen steht -> die
+-- Funktionen faenden crypt() nicht. Deshalb explizit ins public-Schema.
+create extension if not exists pgcrypto with schema public;
 
 create type public.account_status as enum ('pending','approved','rejected','blocked');
 create type public.account_role as enum ('member','admin');
