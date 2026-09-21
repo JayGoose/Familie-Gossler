@@ -218,9 +218,16 @@ function showWhoAmI(firstTime){
   document.body.appendChild(modal);
   const input=modal.querySelector("#whoSearch"),results=modal.querySelector("#whoResults");
   const paint=()=>{
-    const q=input.value.toLowerCase();
-    results.innerHTML=state.people.filter(p=>!q||familyName(p).toLowerCase().includes(q)).slice(0,15)
-      .map(p=>`<button data-id="${p.id}">${familyName(p)}</button>`).join("");
+    const q=input.value.trim().toLowerCase();
+    if(!q){
+      // Namen erscheinen erst beim Tippen (wie in der Referenz), nicht als Vollliste.
+      results.innerHTML=`<p class="who-hint">Tippe einen Namen, um dich zu finden.</p>`;
+      return;
+    }
+    const matches=state.people.filter(p=>familyName(p).toLowerCase().includes(q)).slice(0,15);
+    results.innerHTML=matches.length
+      ? matches.map(p=>`<button data-id="${p.id}">${familyName(p)}</button>`).join("")
+      : `<p class="who-hint">Kein Treffer für „${input.value.trim()}“.</p>`;
     results.querySelectorAll("[data-id]").forEach(b=>b.onclick=async()=>{
       if(state.access!=="guest")await setProfilePerson(b.dataset.id);
       setState({meId:b.dataset.id});modal.remove();showShell("tree");
@@ -238,7 +245,11 @@ function showNewProfile(parentModal){
     <label>Vorname<input name="first_name" required></label><label>Nachname<input name="last_name" required></label>
     <label>Geburtsname<input name="birth_name"></label>
     <label>Geschlecht<select name="gender"><option value="m">Mann</option><option value="f">Frau</option><option value="u">Divers/offen</option></select></label>
-    <label>Familienzweig<select name="branch"><option>Gossler</option><option>von Goetz</option><option>Ahrens</option><option>Sonstige</option></select></label>
+    <label>Familienzweig<select name="branch">${
+      [...new Set(state.people.map(p=>p.last_name).filter(Boolean))]
+        .sort((a,b)=>a.localeCompare(b,"de"))
+        .map(n=>`<option>${n}</option>`).join("")
+    }<option>Sonstige</option></select></label>
     <button>Erstellen</button></form>`;
   document.body.appendChild(modal);
   modal.querySelector("form").onsubmit=async e=>{

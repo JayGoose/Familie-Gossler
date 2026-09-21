@@ -6,6 +6,7 @@ import { savePerson, saveVita, addRelation, deletePlaceholder, auditEvent, uploa
 import { renderMarkdown, wrapSelection } from "./markdown.js";
 import { orderedConnections } from "./connection-order.js";
 import { showQrModal } from "./qr.js";
+import { formatDate } from "./format.js";
 
 function personName(p){return [p?.first_name,p?.last_name].filter(Boolean).join(" ");}
 
@@ -44,8 +45,8 @@ export function openProfile(personId, {full=false}={}) {
     </section>`:""}
 
     <section><h3>Details</h3><dl class="details">
-      <dt>Geburtsdatum</dt><dd>${p.birth_date||"—"}</dd>
-      <dt>Sterbedatum</dt><dd>${p.death_date||"—"}</dd>
+      <dt>Geburtsdatum</dt><dd>${formatDate(p.birth_date)}</dd>
+      <dt>Sterbedatum</dt><dd>${formatDate(p.death_date)}</dd>
       <dt>Geschlecht</dt><dd>${p.gender||"—"}</dd>
       <dt>Beruf</dt><dd>${p.profession||"—"}</dd>
       <dt>Wohnort</dt><dd>${p.residence||"—"}</dd>
@@ -146,22 +147,32 @@ function editVita(p){
 }
 
 function addConnection(p){
-  const options=state.people.filter(x=>x.id!==p.id).map(x=>
-    `<option value="${x.id}">${personName(x)}</option>`).join("");
   const modal=document.createElement("div");
   modal.className="modal";
   modal.innerHTML=`<form class="modal-card">
     <h2>Neue Verbindung</h2>
     <label>Beziehungstyp<select name="type"><option value="parent">Elternteil → Person</option><option value="child">Person → Kind</option><option value="partner">Partner/in</option></select></label>
-    <label>Person suchen<select name="other">${options}</select></label>
+    <label>Person suchen<input id="connSearch" autocomplete="off" placeholder="Namen tippen..."></label>
+    <input type="hidden" name="other" id="connOther">
+    <div id="connResults"></div>
     <label><input type="checkbox" name="former"> ehemalige Partnerschaft</label>
     <div class="row"><button type="submit">Verbindung hinzufügen</button><button type="button" data-cancel>Abbrechen</button></div>
   </form>`;
   document.body.appendChild(modal);
   modal.querySelector("[data-cancel]").onclick=()=>modal.remove();
+  const cInput=modal.querySelector("#connSearch"),cRes=modal.querySelector("#connResults"),cOther=modal.querySelector("#connOther");
+  const cPaint=()=>{
+    const q=cInput.value.trim().toLowerCase();
+    if(!q){cRes.innerHTML=`<p class="who-hint">Tippe einen Namen, um die Person zu wählen.</p>`;return;}
+    const hits=state.people.filter(x=>x.id!==p.id && personName(x).toLowerCase().includes(q)).slice(0,12);
+    cRes.innerHTML=hits.length?hits.map(x=>`<button type="button" data-id="${x.id}">${personName(x)}</button>`).join(""):`<p class="who-hint">Kein Treffer.</p>`;
+    cRes.querySelectorAll("[data-id]").forEach(bn=>bn.onclick=()=>{cOther.value=bn.dataset.id;cInput.value=personName(state.people.find(y=>y.id===bn.dataset.id));cRes.innerHTML=`<p class="who-hint">Gewählt: ${cInput.value}</p>`;});
+  };
+  cInput.oninput=cPaint;cPaint();
   modal.querySelector("form").onsubmit=async e=>{
     e.preventDefault();
     const fd=new FormData(e.currentTarget),type=fd.get("type"),other=fd.get("other");
+    if(!other){alert("Bitte zuerst eine Person aus der Trefferliste wählen.");return;}
     if(type==="parent")await addRelation(other,p.id,"parent",false);
     else if(type==="child")await addRelation(p.id,other,"parent",false);
     else await addRelation(p.id,other,"partner",fd.get("former")==="on");
