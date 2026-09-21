@@ -18,3 +18,4 @@ public/demo-graph.json
 
 # Lokale Kiro-/MCP-Einstellungen (Projekt-Referenz, nicht oeffentlich)
 .kiro/settings/
+public/profile-demo.html
