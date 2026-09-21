@@ -416,6 +416,31 @@ function bindInteractions(svg) {
     if (t && state.onPerson) { e.preventDefault(); state.onPerson(t.getAttribute("data-id")); }
   });
 
+  // Hover/Focus: Abstammungslinie zur Wurzel aufleuchten lassen, Rest dimmen.
+  // Das macht "wer stammt von wem ab" unmittelbar nachvollziehbar.
+  let hoverId = null;
+  const traceFrom = (t) => {
+    const id = t?.getAttribute?.("data-id");
+    if (!id || id === hoverId) return;
+    hoverId = id;
+    const path = ancestorPath(id);
+    if (path.length) { highlightConnection(path); drawPathSpoke(path); }
+  };
+  const untrace = () => { hoverId = null; clearHighlight(); removePathSpoke(); };
+  svg.addEventListener("pointerover", (e) => {
+    const t = e.target.closest?.("[data-id]");
+    if (t) traceFrom(t); 
+  });
+  svg.addEventListener("pointerout", (e) => {
+    // Nur löschen, wenn der Zeiger das SVG wirklich verlässt (nicht bei Segmentwechsel).
+    if (!e.relatedTarget || !svg.contains(e.relatedTarget)) untrace();
+  });
+  svg.addEventListener("focusin", (e) => {
+    const t = e.target.closest?.("[data-id]");
+    if (t) traceFrom(t);
+  });
+  svg.addEventListener("focusout", untrace);
+
   // Wheel: Zoom am Cursor (Rotation liegt auf dem Rändelrad, s.u.).
   svg.addEventListener("wheel", (e) => {
     e.preventDefault();
@@ -530,6 +555,28 @@ function animateTo(target, dur = 480) {
 }
 
 // --- Highlight ------------------------------------------------------------
+// Baut die Abstammungslinie einer Person zurück zur Wurzel (parentId-Kette).
+// Für angeheiratete Partner: über hostOf zum Blutspartner und dann dessen Linie.
+function ancestorPath(personId) {
+  if (!state.layout) return [];
+  const byId = new Map(state.layout.segments.map(s => [s.id, s]));
+  let startId = personId;
+  if (!byId.has(startId)) {
+    const host = state.layout.hostOf?.get(personId);
+    if (host) { const path = ancestorPath(host); return host ? [personId, ...path] : path; }
+    return [];
+  }
+  const path = [];
+  let cur = byId.get(startId);
+  const guard = new Set();
+  while (cur && !guard.has(cur.id)) {
+    guard.add(cur.id);
+    path.push(cur.id);
+    cur = cur.parentId ? byId.get(cur.parentId) : null;
+  }
+  return path;
+}
+
 export function highlightConnection(pathIds) {
   if (!state.gRoot) return;
   const set = new Set(pathIds || []);
@@ -538,6 +585,37 @@ export function highlightConnection(pathIds) {
     node.classList.toggle("fan-hl", set.has(id));
     node.classList.toggle("fan-dim", set.size > 0 && !set.has(id));
   }
+}
+
+// Zeichnet eine dünne Verbindungslinie vom Zentrum durch die Mitten der
+// hervorgehobenen Segmente — die sichtbare Abstammungslinie.
+function drawPathSpoke(pathIds) {
+  removePathSpoke();
+  if (!state.gRoot || !state.layout || !pathIds?.length) return;
+  const byId = new Map(state.layout.segments.map(s => [s.id, s]));
+  const pts = [[state.cx, state.cy]];
+  // pathIds ist von Person->Wurzel; für die Linie vom Zentrum nach außen umkehren.
+  const ordered = pathIds.slice().reverse();
+  for (const id of ordered) {
+    const seg = byId.get(id);
+    if (!seg || seg.generation === 0) continue;
+    const [x, y] = segmentCenterXY(seg, state.cx, state.cy);
+    pts.push([x, y]);
+  }
+  if (pts.length < 2) return;
+  const gLine = el("g", { id: "fan-spoke", class: "fan-spoke" });
+  const poly = el("polyline", {
+    points: pts.map(p => p.join(",")).join(" "),
+    fill: "none"
+  });
+  gLine.appendChild(poly);
+  for (const [x, y] of pts.slice(1)) {
+    gLine.appendChild(el("circle", { cx: x, cy: y, r: 3.2, class: "fan-spoke-dot" }));
+  }
+  state.gRoot.appendChild(gLine);
+}
+function removePathSpoke() {
+  state.gRoot?.querySelector("#fan-spoke")?.remove();
 }
 export function clearHighlight() {
   if (!state.gRoot) return;

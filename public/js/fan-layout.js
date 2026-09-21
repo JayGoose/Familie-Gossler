@@ -70,11 +70,12 @@ export function computeLeafWeight(node) {
  * Schreibt je Knoten { theta0, theta1, mid, generation, radius0, radius1 }.
  * @returns flache Liste aller Segmente.
  */
-export function assignAngles(node, a0, a1, gen, out = []) {
+export function assignAngles(node, a0, a1, gen, out = [], parentId = null) {
   node.theta0 = a0;
   node.theta1 = a1;
   node.mid = (a0 + a1) / 2;
   node.generation = gen;
+  node.parentId = parentId;
   node.radius0 = gen * RING;
   node.radius1 = (gen + 1) * RING;
   out.push(node);
@@ -84,7 +85,7 @@ export function assignAngles(node, a0, a1, gen, out = []) {
     let cursor = a0;
     for (const c of node.children) {
       const span = (a1 - a0) * ((c.leaf || 1) / total);
-      assignAngles(c, cursor, cursor + span, gen + 1, out);
+      assignAngles(c, cursor, cursor + span, gen + 1, out, node.id);
       cursor += span;
     }
   }
