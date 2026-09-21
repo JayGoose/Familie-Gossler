@@ -228,8 +228,9 @@ function bindInteractions(svg) {
   });
   svg.addEventListener("pointermove", (e) => {
     if (!drag) return;
-    const k = S.vb.w / svg.clientWidth;
-    S.vb.x -= (e.clientX - lx) * k; S.vb.y -= (e.clientY - ly) * k;
+    const r = svg.getBoundingClientRect();
+    const s = Math.min(r.width / S.vb.w, r.height / S.vb.h); // echte Welt→px-Skala
+    S.vb.x -= (e.clientX - lx) / s; S.vb.y -= (e.clientY - ly) / s;
     lx = e.clientX; ly = e.clientY; applyVB();
   });
   const end = (e) => { drag = false; svg.releasePointerCapture?.(e.pointerId); };
@@ -241,7 +242,15 @@ function collapseNode(id) { collapse(id); }
 
 function toWorld(svg, cx, cy) {
   const r = svg.getBoundingClientRect();
-  return [S.vb.x + ((cx - r.left) / r.width) * S.vb.w, S.vb.y + ((cy - r.top) / r.height) * S.vb.h];
+  // preserveAspectRatio="xMidYMid meet": einheitlicher Maßstab = min beider
+  // Achsen; der Rest ist Letterbox-Rand. Ohne diese Umkehrung zoomt das Rad
+  // auf den falschen Punkt (Sprung).
+  const s = Math.min(r.width / S.vb.w, r.height / S.vb.h);
+  const offX = (r.width - S.vb.w * s) / 2;
+  const offY = (r.height - S.vb.h * s) / 2;
+  const wx = S.vb.x + (cx - r.left - offX) / s;
+  const wy = S.vb.y + (cy - r.top - offY) / s;
+  return [wx, wy];
 }
 function zoomAt(wx, wy, factor) {
   const min = CONFIG.ui.minTreeScale ?? 0.28, max = CONFIG.ui.maxTreeScale ?? 2.2;
@@ -250,7 +259,7 @@ function zoomAt(wx, wy, factor) {
   const nw = S.vb.w / rf, nh = S.vb.h / rf;
   const tx = (wx - S.vb.x) / S.vb.w, ty = (wy - S.vb.y) / S.vb.h;
   S.vb = { x: wx - tx * nw, y: wy - ty * nh, w: nw, h: nh };
-  applyVB(); scheduleRelabel();
+  applyVB(); debouncedRelabel();
 }
 function applyVB() {
   if (S.svg) S.svg.setAttribute("viewBox", `${S.vb.x} ${S.vb.y} ${S.vb.w} ${S.vb.h}`);
@@ -261,6 +270,12 @@ function scheduleRelabel() {
   if (relabelPending) return;
   relabelPending = true;
   requestAnimationFrame(() => { relabelPending = false; render(); });
+}
+// Zoom bleibt flüssig: Labels erst neu aufbauen, wenn die Geste ~140ms ruht.
+let relabelTimer = null;
+function debouncedRelabel() {
+  if (relabelTimer) clearTimeout(relabelTimer);
+  relabelTimer = setTimeout(() => { relabelTimer = null; render(); }, 140);
 }
 
 // --- Navigation -----------------------------------------------------------

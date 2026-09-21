@@ -497,23 +497,60 @@ function bindInteractions(svg) {
     debouncedRelabel();           // Labels/Chips erst wenn die Geste ruht
   }, { passive: false });
 
-  // Drag-Pan.
-  let dragging = false, lastX = 0, lastY = 0;
+  // Drag-Pan (ein Finger/Maus) + Pinch-Zoom (zwei Finger, mobil).
+  const pts = new Map();           // pointerId -> {x,y}
+  let lastX = 0, lastY = 0;
+  let pinchDist = 0;               // letzte Fingerdistanz
+  const worldScale = () => Math.min(svg.clientWidth / state.vb.w, svg.clientHeight / state.vb.h);
   svg.addEventListener("pointerdown", (e) => {
     if (e.target.closest("#fan-wheel")) return;
-    dragging = true; lastX = e.clientX; lastY = e.clientY;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    lastX = e.clientX; lastY = e.clientY;
+    if (pts.size === 2) {
+      const [a, b] = [...pts.values()];
+      pinchDist = Math.hypot(a.x - b.x, a.y - b.y);
+    }
     svg.setPointerCapture?.(e.pointerId);
   });
   svg.addEventListener("pointermove", (e) => {
-    if (!dragging) return;
-    const k = state.vb.w / svg.clientWidth;   // Welt-px pro Bildschirm-px
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size >= 2) {
+      // Pinch: um den Mittelpunkt der zwei Finger zoomen.
+      const [a, b] = [...pts.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinchDist > 0 && dist > 0) {
+        const midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2;
+        const [wx, wy] = clientToWorld(svg, midX, midY);
+        const scaleNow = worldScale();
+        const minS = (CONFIG.ui.minFanScreenScale ?? 0.18);
+        const maxS = (CONFIG.ui.maxFanScreenScale ?? 2.4);
+        let next = Math.max(minS, Math.min(maxS, scaleNow * (dist / pinchDist)));
+        const rf = next / scaleNow;
+        if (Math.abs(rf - 1) > 1e-4) {
+          const nw = state.vb.w / rf, nh = state.vb.h / rf;
+          const tx = (wx - state.vb.x) / state.vb.w, ty = (wy - state.vb.y) / state.vb.h;
+          state.vb = { x: wx - tx * nw, y: wy - ty * nh, w: nw, h: nh };
+          commitView(); debouncedRelabel();
+        }
+      }
+      pinchDist = dist;
+      return;
+    }
+    // Ein Finger/Maus: Pan.
+    const k = 1 / worldScale();      // Welt-Einheiten pro Bildschirm-px
     state.vb = panBy(state.vb, -(e.clientX - lastX) * k, -(e.clientY - lastY) * k);
     lastX = e.clientX; lastY = e.clientY;
     commitView();
   });
-  const endDrag = (e) => { dragging = false; svg.releasePointerCapture?.(e.pointerId); };
-  svg.addEventListener("pointerup", endDrag);
-  svg.addEventListener("pointercancel", endDrag);
+  const endPtr = (e) => {
+    pts.delete(e.pointerId);
+    if (pts.size < 2) pinchDist = 0;
+    if (pts.size === 1) { const p = [...pts.values()][0]; lastX = p.x; lastY = p.y; }
+    svg.releasePointerCapture?.(e.pointerId);
+  };
+  svg.addEventListener("pointerup", endPtr);
+  svg.addEventListener("pointercancel", endPtr);
 
   addWheelControl(svg);
 }
