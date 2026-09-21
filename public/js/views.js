@@ -11,15 +11,17 @@ import {
 import Fan from "./fan.js";
 import Tree from "./tree.js";
 import Gotha from "./gotha.js";
+import MapView from "./map.js";
 
 const VIEW_KEY = "gossler_view";
-const VIEWS = ["fan-gender", "fan-year", "fan-name", "gotha", "tree"];
+const VIEWS = ["fan-gender", "fan-year", "fan-name", "gotha", "tree", "map"];
 const VIEW_META = {
   "fan-gender": { icon: "◔", label: "Fächer · Geschlecht", short: "Geschlecht", kind: "fan", color: "gender" },
   "fan-year":   { icon: "◷", label: "Fächer · Jahr", short: "Jahr", kind: "fan", color: "year" },
   "fan-name":   { icon: "◑", label: "Fächer · Name", short: "Name", kind: "fan", color: "name" },
   "gotha":      { icon: "☰", label: "Gotha-Verzeichnis", short: "Gotha", kind: "gotha" },
-  "tree":       { icon: "⌗", label: "Stammtafel", short: "Stammtafel", kind: "tree" }
+  "tree":       { icon: "⌗", label: "Stammtafel", short: "Stammtafel", kind: "tree" },
+  "map":        { icon: "⚲", label: "Ortskarte", short: "Karte", kind: "map" }
 };
 
 const V = {
@@ -142,12 +144,15 @@ function renderActive() {
     Tree.render(canvas, (id) => handlePerson(id));
   } else if (meta.kind === "gotha") {
     Gotha.render(canvas, (id) => handlePerson(id));
+  } else if (meta.kind === "map") {
+    MapView.render(canvas, V.people, V.active?.bloodIds || null, (id) => handlePerson(id));
   }
 }
 
 function hideOverlays() {
   V.outlet.querySelector("#fan-legend")?.remove();
   V.outlet.querySelector("#timeline-bar")?.remove();
+  MapView.hide();
 }
 
 function renderLegend(html) {

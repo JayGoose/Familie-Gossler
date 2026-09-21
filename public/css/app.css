@@ -117,6 +117,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .view-switch button.active{background:var(--accent);color:#fff}
 .view-switch .vs-ico{font-size:14px}
 @media(max-width:560px){.view-switch .vs-txt{display:none}.view-switch button{padding:9px 11px}}
+/* --- Ortskarte -------------------------------------------------------- */
+#map-canvas{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.map-note{position:absolute;left:12px;bottom:12px;z-index:500;background:rgba(255,253,249,.94);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font:var(--font-small);max-width:60vw}
+.map-pin{background:var(--accent);color:#fff;border:2px solid #fff;border-radius:50%;display:grid;place-items:center;font:700 12px Inter;box-shadow:0 2px 6px #0003}
+.map-pin span{line-height:1}
+.map-popup b{font:var(--font-h3);display:block;margin-bottom:6px}
+.map-plist{display:grid;gap:2px;max-height:180px;overflow:auto}
+.map-person{display:block;width:100%;text-align:left;border:0;background:none;color:var(--accent);font-weight:500;border-radius:6px;padding:5px 7px}
+.map-person:hover{background:#f2efe7;filter:none}
 .fan-legend{position:fixed;right:16px;bottom:16px;z-index:55;background:rgba(255,253,249,.94);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:11px;max-width:44vw}
 .fan-legend .lg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:middle;margin:0 2px}
 .orphan-pill{position:fixed;left:16px;bottom:16px;z-index:55;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12px}
