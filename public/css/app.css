@@ -88,9 +88,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .fan-knob:hover { fill: #00000030; }
 
 /* --- Ansichtsumschalter (View-Switch-Pille) ---------------------------- */
-.view-switch{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;display:flex;gap:2px;background:#fffefb;border:1px solid var(--line);border-radius:999px;padding:4px;box-shadow:var(--shadow)}
-.view-switch button{border:0;background:none;border-radius:999px;padding:8px 12px;font-size:13px;line-height:1}
+.view-switch{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;display:flex;gap:2px;background:#fffefb;border:1px solid var(--line);border-radius:999px;padding:4px;box-shadow:var(--shadow-lg)}
+.view-switch button{border:0;background:none;border-radius:999px;padding:8px 14px;font-size:13px;line-height:1;color:var(--ink);display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.view-switch button:hover{background:#f2efe7;filter:none}
 .view-switch button.active{background:var(--accent);color:#fff}
+.view-switch .vs-ico{font-size:14px}
+@media(max-width:560px){.view-switch .vs-txt{display:none}.view-switch button{padding:9px 11px}}
 .fan-legend{position:fixed;right:16px;bottom:16px;z-index:55;background:rgba(255,253,249,.94);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:11px;max-width:44vw}
 .fan-legend .lg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:middle;margin:0 2px}
 .orphan-pill{position:fixed;left:16px;bottom:16px;z-index:55;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12px}

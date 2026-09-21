@@ -15,11 +15,11 @@ import Gotha from "./gotha.js";
 const VIEW_KEY = "gossler_view";
 const VIEWS = ["fan-gender", "fan-year", "fan-name", "gotha", "tree"];
 const VIEW_META = {
-  "fan-gender": { icon: "◔", label: "Fächer · Geschlecht", kind: "fan", color: "gender" },
-  "fan-year":   { icon: "◷", label: "Fächer · Jahr", kind: "fan", color: "year" },
-  "fan-name":   { icon: "◑", label: "Fächer · Name", kind: "fan", color: "name" },
-  "gotha":      { icon: "☰", label: "Gotha", kind: "gotha" },
-  "tree":       { icon: "⌗", label: "Stammtafel", kind: "tree" }
+  "fan-gender": { icon: "◔", label: "Fächer · Geschlecht", short: "Geschlecht", kind: "fan", color: "gender" },
+  "fan-year":   { icon: "◷", label: "Fächer · Jahr", short: "Jahr", kind: "fan", color: "year" },
+  "fan-name":   { icon: "◑", label: "Fächer · Name", short: "Name", kind: "fan", color: "name" },
+  "gotha":      { icon: "☰", label: "Gotha-Verzeichnis", short: "Gotha", kind: "gotha" },
+  "tree":       { icon: "⌗", label: "Stammtafel", short: "Stammtafel", kind: "tree" }
 };
 
 const V = {
@@ -80,7 +80,7 @@ function buildSwitch() {
   const sw = V.outlet.querySelector("#view-switch");
   sw.innerHTML = VIEWS.map(v =>
     `<button role="tab" data-view="${v}" aria-selected="${v === V.view}" title="${VIEW_META[v].label}"
-       class="${v === V.view ? "active" : ""}">${VIEW_META[v].icon}</button>`).join("");
+       class="${v === V.view ? "active" : ""}"><span class="vs-ico" aria-hidden="true">${VIEW_META[v].icon}</span><span class="vs-txt">${VIEW_META[v].short}</span></button>`).join("");
   sw.querySelectorAll("[data-view]").forEach(b => b.onclick = () => setView(b.dataset.view));
 }
 
