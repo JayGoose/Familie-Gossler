@@ -136,7 +136,8 @@ function shell(){
   return `<div class="app-shell">
   <header class="app-header">
     <button class="brand" data-home title="Zur Startansicht"><span class="crest small crest-full"><img src="./assets/wappen-gossler.png" alt="Wappen"></span><span class="brand-text"><b>${CONFIG.family.title}</b><small>${CONFIG.family.subtitle}</small></span></button>
-    <nav>
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mainNav" aria-label="Menü öffnen">☰ <span>Menü</span></button>
+    <nav id="mainNav" class="nav-menu" aria-label="Hauptmenü" hidden>
       <button data-view="tree">Stammbaum</button>
       <button data-view="me">Mein Profil</button>
       <button data-view="qr">Mein QR-Code</button>
@@ -172,8 +173,15 @@ function showShell(view){
 
 function bindShell(){
   document.querySelector("[data-home]")?.addEventListener("click",()=>renderView("tree"));
+  const nav=document.querySelector("#mainNav"),toggle=document.querySelector("#navToggle");
+  const closeMenu=()=>{if(!nav)return;nav.hidden=true;toggle?.setAttribute("aria-expanded","false");toggle?.setAttribute("aria-label","Menü öffnen");};
+  const openMenu=()=>{if(!nav)return;nav.hidden=false;toggle?.setAttribute("aria-expanded","true");toggle?.setAttribute("aria-label","Menü schließen");};
+  toggle?.addEventListener("click",(e)=>{e.stopPropagation();nav.hidden?openMenu():closeMenu();});
+  document.addEventListener("click",(e)=>{if(nav&&!nav.hidden&&!nav.contains(e.target)&&e.target!==toggle&&!toggle.contains(e.target))closeMenu();});
+  document.addEventListener("keydown",(e)=>{if(e.key==="Escape")closeMenu();});
   document.querySelectorAll("[data-view]").forEach(b=>b.onclick=async()=>{
     const v=b.dataset.view;
+    closeMenu();
     if(v==="logout"){await signOut();return showLogin();}
     if(v==="privacy")return showPrivacy(true);
     if(v==="me"){if(state.meId)openProfile(state.meId,{full:true});return;}
