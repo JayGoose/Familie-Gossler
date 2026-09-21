@@ -236,11 +236,12 @@ export function render(resetView = false) {
   const size = (lay.maxGen + 2) * RING * 2;
   state.size = size;
   state.cx = size / 2; state.cy = size / 2;
-  if (resetView || !state.vb) state.vb = initialViewBox(size);
+  if (resetView || !state.vb) state.vb = fitViewBox(size);
 
   const svg = el("svg", {
     class: "fan-svg",
     "data-color-mode": state.colorMode,
+    preserveAspectRatio: "xMidYMid meet",
     role: "img",
     "aria-label": `Fächer-Stammbaum ab ${fullNameOf(rootPerson)}`
   });
@@ -260,7 +261,7 @@ export function render(resetView = false) {
     }));
   }
 
-  const scale = viewScale(state.vb, size);
+  const scale = currentScale();
   for (const seg of lay.segments) renderSegment(g, seg, scale);
 
   c.innerHTML = "";
@@ -387,10 +388,33 @@ function renderSegment(g, seg, scale) {
 }
 
 // --- viewBox / Rotation ---------------------------------------------------
+// Baut eine viewBox, die das SEITENVERHÄLTNIS des Containers übernimmt und den
+// Fächer mittig einpasst. So bleibt der Kreis rund (kein Ei) und die
+// Bildschirm↔Welt-Abbildung ist auf beiden Achsen exakt (sauberer Zoom).
+function fitViewBox(size) {
+  const c = state.container;
+  const cw = c?.clientWidth || 1000;
+  const ch = c?.clientHeight || 1000;
+  const ar = cw / ch;
+  const pad = size * 0.06;               // etwas Rand rund um den Fächer
+  const base = size + pad * 2;
+  let w, h;
+  if (ar >= 1) { h = base; w = base * ar; } // breiter Container: Breite wächst
+  else { w = base; h = base / ar; }          // hoher Container: Höhe wächst
+  return { x: state.cx - w / 2, y: state.cy - h / 2, w, h };
+}
+
 function applyViewBox(svg = state.svg) {
   if (!svg || !state.vb) return;
   const { x, y, w, h } = state.vb;
   svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+}
+// Tatsächlicher Maßstab: Bildschirm-px pro Welt-Einheit unter meet-Skalierung.
+// Da die viewBox das Container-Seitenverhältnis übernimmt, sind beide Achsen gleich.
+function currentScale() {
+  const c = state.container;
+  const cw = c?.clientWidth || 1000, ch = c?.clientHeight || 1000;
+  return Math.min(cw / state.vb.w, ch / state.vb.h);
 }
 function rotTransform() {
   const deg = state.phi * 180 / Math.PI;
@@ -452,14 +476,25 @@ function bindInteractions(svg) {
   });
   svg.addEventListener("focusout", untrace);
 
-  // Wheel: Zoom am Cursor (Rotation liegt auf dem Rändelrad, s.u.).
+  // Wheel: Zoom am Cursor — flüssig (nur viewBox), Labels erst nach der Geste neu.
   svg.addEventListener("wheel", (e) => {
     e.preventDefault();
     const [wx, wy] = clientToWorld(svg, e.clientX, e.clientY);
-    const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
-    state.vb = zoomAt(state.vb, state.size, wx, wy, factor,
-      CONFIG.ui.minTreeScale ?? 0.28, 6);
-    scheduleRelabel();
+    const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+    // Grenzen gegen den TATSÄCHLICHEN Maßstab (px/Welt-Einheit), damit die
+    // Limits mit der seitenverhältnis-angepassten viewBox stimmen.
+    const scaleNow = currentScale();
+    const minS = (CONFIG.ui.minFanScreenScale ?? 0.18);
+    const maxS = (CONFIG.ui.maxFanScreenScale ?? 2.4);
+    let next = scaleNow * factor;
+    next = Math.max(minS, Math.min(maxS, next));
+    const realFactor = next / scaleNow;
+    if (Math.abs(realFactor - 1) < 1e-4) return;
+    const newW = state.vb.w / realFactor, newH = state.vb.h / realFactor;
+    const tx = (wx - state.vb.x) / state.vb.w, ty = (wy - state.vb.y) / state.vb.h;
+    state.vb = { x: wx - tx * newW, y: wy - ty * newH, w: newW, h: newH };
+    commitView();                 // sofort, flüssig
+    debouncedRelabel();           // Labels/Chips erst wenn die Geste ruht
   }, { passive: false });
 
   // Drag-Pan.
@@ -530,6 +565,14 @@ function scheduleRelabel() {
   });
 }
 
+// Nach der Zoom-Geste (Ruhe ~140ms) einmal die Labels/Chips neu aufbauen,
+// statt bei jedem Wheel-Tick — so bleibt der Zoom flüssig.
+let relabelTimer = null;
+function debouncedRelabel() {
+  if (relabelTimer) clearTimeout(relabelTimer);
+  relabelTimer = setTimeout(() => { relabelTimer = null; render(false); }, 140);
+}
+
 // --- Navigation (centerOn/panTo mit Animation) ----------------------------
 export function centerOn(personId, { zoom = 2.2, animate = true } = {}) {
   if (!personId || !state.layout) return;
@@ -547,7 +590,7 @@ export function centerOn(personId, { zoom = 2.2, animate = true } = {}) {
 export function panTo(personId) { centerOn(personId, { zoom: 1.6 }); }
 
 export function fitAll() {
-  state.vb = initialViewBox(state.size);
+  state.vb = fitViewBox(state.size);
   scheduleRelabel();
 }
 
@@ -645,7 +688,7 @@ function drawSegmentChips(segId) {
     { a: "partner", t: "∞", title: "Partner hinzufügen" }
   );
   const g = el("g", { id: "fan-chips", class: "fan-chips" });
-  const rBase = 13 / viewScale(state.vb, state.size);
+  const rBase = 13 / currentScale();
   const gap = rBase * 2.4;
   chips.forEach((c, i) => {
     const x = cxp + (i - (chips.length - 1) / 2) * gap;
