@@ -37,7 +37,7 @@ function saveView(v) { try { localStorage.setItem(VIEW_KEY, v); } catch (_) {} }
  * @param people/relations  DB-Schema
  * @param opts { meId, onPerson }
  */
-export function mountViews(outlet, people, relations, { meId = null, onPerson = null } = {}) {
+export function mountViews(outlet, people, relations, { meId = null, onPerson = null, canEdit = false } = {}) {
   V.people = people || []; V.relations = relations || [];
   V.meId = meId; V.onPerson = onPerson; V.outlet = outlet;
   V.families = computeFamilies(V.people, V.relations);
@@ -57,7 +57,8 @@ export function mountViews(outlet, people, relations, { meId = null, onPerson = 
   Fan.init(canvas, {
     onPerson: (id) => handlePerson(id),
     onFamilyChange: (id) => showInTree(id, { view: V.view }),
-    meId: V.meId
+    meId: V.meId,
+    canEdit
   });
   Fan.setData(V.people, V.relations);
   Fan.setMeta({

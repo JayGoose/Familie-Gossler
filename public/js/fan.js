@@ -44,6 +44,7 @@ const state = {
   deceasedIds: null,
   onPerson: null,
   onFamilyChange: null,
+  canEdit: false,
   yearRange: null,
   rootLastName: "",
   size: 1000,
@@ -152,11 +153,12 @@ function curvedLabel(g, seg, r, text, { fontPx = 10, cls = "fan-label", dataId =
 }
 
 // --- Public API -----------------------------------------------------------
-export function init(container, { onPerson, onFamilyChange, meId } = {}) {
+export function init(container, { onPerson, onFamilyChange, meId, canEdit } = {}) {
   state.container = container;
   state.onPerson = onPerson || null;
   state.onFamilyChange = onFamilyChange || null;
   state.meId = meId || null;
+  state.canEdit = !!canEdit;
 }
 
 export function setData(people, relations) {
@@ -405,8 +407,16 @@ function commitView() {
 
 // --- Interaktion ----------------------------------------------------------
 function bindInteractions(svg) {
-  // Klick / Tastatur auf Segment öffnet Profil.
+  // Klick / Tastatur auf Segment öffnet Profil. Klick auf einen Chip löst die Aktion aus.
   svg.addEventListener("click", (e) => {
+    const chip = e.target.closest?.(".fan-chip");
+    if (chip) {
+      e.stopPropagation();
+      document.dispatchEvent(new CustomEvent("gossler:ring-action", {
+        detail: { action: chip.getAttribute("data-action"), targetId: chip.getAttribute("data-target") }
+      }));
+      return;
+    }
     const t = e.target.closest("[data-id]");
     if (t && state.onPerson) state.onPerson(t.getAttribute("data-id"));
   });
@@ -425,8 +435,9 @@ function bindInteractions(svg) {
     hoverId = id;
     const path = ancestorPath(id);
     if (path.length) { highlightConnection(path); drawPathSpoke(path); }
+    drawSegmentChips(id);
   };
-  const untrace = () => { hoverId = null; clearHighlight(); removePathSpoke(); };
+  const untrace = () => { hoverId = null; clearHighlight(); removePathSpoke(); removeSegmentChips(); };
   svg.addEventListener("pointerover", (e) => {
     const t = e.target.closest?.("[data-id]");
     if (t) traceFrom(t); 
@@ -616,6 +627,41 @@ function drawPathSpoke(pathIds) {
 }
 function removePathSpoke() {
   state.gRoot?.querySelector("#fan-spoke")?.remove();
+}
+
+// Hover-Aktions-Chips am Segment (Referenzverhalten): ? = Verwandtschaft,
+// und für Bearbeiter +Kind / +Geschwister / ∞Partner. Emittiert gossler:ring-action.
+function drawSegmentChips(segId) {
+  removeSegmentChips();
+  if (!state.gRoot || !state.layout) return;
+  const seg = state.layout.segments.find(s => s.id === segId);
+  if (!seg || seg.generation === 0) return;
+  const [cxp, cyp] = segmentCenterXY(seg, state.cx, state.cy);
+  const canEdit = state.canEdit;
+  const chips = [{ a: "relationship", t: "?", title: "Wie sind wir verwandt?" }];
+  if (canEdit) chips.push(
+    { a: "child", t: "+", title: "Kind hinzufügen" },
+    { a: "sibling", t: "±", title: "Geschwister hinzufügen" },
+    { a: "partner", t: "∞", title: "Partner hinzufügen" }
+  );
+  const g = el("g", { id: "fan-chips", class: "fan-chips" });
+  const rBase = 13 / viewScale(state.vb, state.size);
+  const gap = rBase * 2.4;
+  chips.forEach((c, i) => {
+    const x = cxp + (i - (chips.length - 1) / 2) * gap;
+    const y = cyp;
+    const chip = el("g", { class: "fan-chip", "data-action": c.a, "data-target": segId, role: "button", "aria-label": c.title });
+    chip.appendChild(el("circle", { cx: x, cy: y, r: rBase }));
+    const tx = el("text", { x, y, "text-anchor": "middle", "dominant-baseline": "central", "font-size": String(rBase * 1.1) });
+    tx.textContent = c.t;
+    chip.appendChild(tx);
+    const tip = el("title", {}); tip.textContent = c.title; chip.appendChild(tip);
+    g.appendChild(chip);
+  });
+  state.gRoot.appendChild(g);
+}
+function removeSegmentChips() {
+  state.gRoot?.querySelector("#fan-chips")?.remove();
 }
 export function clearHighlight() {
   if (!state.gRoot) return;

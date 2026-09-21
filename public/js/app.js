@@ -192,7 +192,7 @@ function renderView(view){
   state.view=view;
   document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
   outlet.className=`view view-${view}`;
-  if(view==="tree")return Views.mountViews(outlet,state.people,state.relations,{meId:state.meId,onPerson:id=>openProfile(id)});
+  if(view==="tree")return Views.mountViews(outlet,state.people,state.relations,{meId:state.meId,onPerson:id=>openProfile(id),canEdit:["member","admin"].includes(state.access)});
   if(view==="admin")return renderAdmin(outlet);
 }
 
@@ -286,7 +286,7 @@ function showPrivacy(inApp=false){
 document.addEventListener("gossler:show-in-tree",e=>{const id=e.detail?.personId;if(!id)return;setState({selectedId:id});showShell("tree");setTimeout(()=>Views.showInTree(id,{view:"tree"}),80);});
 document.addEventListener("gossler:highlight-connection",e=>{const {meId,otherId}=e.detail||{};if(!meId||!otherId)return;setState({selectedId:otherId});if(state.view!=="tree")showShell("tree");setTimeout(()=>Views.highlightConnection(meId,otherId),80);});
 document.addEventListener("gossler:open-full-profile",e=>{const id=e.detail?.personId;if(!id)return;location.hash=`person=${encodeURIComponent(id)}`;openProfile(id,{full:true});});
-document.addEventListener("gossler:ring-action",async e=>{const {action,targetId}=e.detail||{};if(!targetId)return;if(action==="relationship"){setState({selectedId:targetId});return openProfile(targetId);}if(!["member","admin"].includes(state.access))return alert("Zum Bearbeiten ist ein freigegebenes Familienkonto erforderlich.");const other=prompt("Personen-ID für die neue Verbindung:");if(!other)return;try{if(action==="child")await addRelation(targetId,other,"parent",false);if(action==="partner")await addRelation(targetId,other,"partner",false);if(action==="sibling"){const rels=state.relations.filter(r=>r.relation_type==="parent"&&r.person_b===targetId);if(!rels.length)throw new Error("Keine Eltern hinterlegt.");for(const r of rels)await addRelation(r.person_a,other,"parent",false);}location.reload();}catch(err){alert(err.message);}});
+document.addEventListener("gossler:ring-action",async e=>{const {action,targetId}=e.detail||{};if(!targetId)return;if(action==="relationship"){if(state.meId&&state.meId!==targetId){setState({selectedId:targetId});return document.dispatchEvent(new CustomEvent("gossler:highlight-connection",{detail:{meId:state.meId,otherId:targetId}}));}setState({selectedId:targetId});return openProfile(targetId);}if(!["member","admin"].includes(state.access))return alert("Zum Bearbeiten ist ein freigegebenes Familienkonto erforderlich.");setState({selectedId:targetId});openProfile(targetId);});
 
 if(location.hash==="#reset-password"){
   page(authShell(`<h2>Neues Passwort</h2><form id="resetForm"><label>Neues Passwort<input name="password" type="password" minlength="6" required></label><label>Passwort bestätigen<input name="confirm" type="password" minlength="6" required></label><button>Passwort ändern</button></form>`));

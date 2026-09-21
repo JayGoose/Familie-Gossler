@@ -94,6 +94,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .fan-spoke { pointer-events: none; }
 .fan-spoke polyline { stroke: var(--path); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; opacity: .9; }
 .fan-spoke .fan-spoke-dot { fill: var(--path); stroke: #fff; stroke-width: 1; }
+.fan-chips { pointer-events: all; }
+.fan-chip { cursor: pointer; }
+.fan-chip circle { fill: var(--accent); stroke: #fff; stroke-width: 1.5; }
+.fan-chip:hover circle { fill: #26473f; }
+.fan-chip text { fill: #fff; font-weight: 700; font-family: Inter, system-ui, sans-serif; pointer-events: none; }
 
 /* --- Fächer Task 9/10 Ergänzungen -------------------------------------- */
 .fan-registered { stroke: #1a1a1a; stroke-width: 2.2; }
