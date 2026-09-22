@@ -289,3 +289,43 @@ commit lokal → `git push ghtoken site:site` (Token-Remote in separatem Schritt
 in EIGENEM Befehl entfernen → main per GitHub-API PATCH fast-forwarden. Selbstschutz-Filter meldet
 Fehlalarm bei `remove`/`rm` + `kirocrew`/`$KIROCREW_SCRATCH` in DERSELBEN Zeile → Schritte trennen,
 Token in Datei außerhalb des KIROCREW-Pfads (`$HOME/.ght_tmp`) legen.
+
+## Checkpoint 2026-09-22 — Zoom-Fixes, Mobil-Tests, Polish-Pass
+
+**Live:** https://jaygoose.github.io/Familie-Gossler/ · 97 Node-Tests grün · security_guard PASS.
+
+### Heute erledigt (alles live)
+- **Fächer-Zoom gefixt:** viewBox übernimmt jetzt das Container-Seitenverhältnis (Kreis statt Ei
+  in breiten Fenstern), Zoom flüssig (live viewBox-Commit, debounced Relabel statt Voll-Render je
+  Tick), Grenzen gegen den echten Maßstab. `fitViewBox()`/`currentScale()` in `fan.js`.
+- **Stammtafel-Zoom gefixt:** derselbe Fokus-Fehler (meet-Letterbox nicht invertiert) → `toWorld()`
+  rechnet jetzt Skalierung+Rand korrekt; Pan-Skala korrigiert; Zoom flüssig (debounced). `tree.js`.
+- **Pinch-to-Zoom fürs Handy** im Fächer neu (zwei Finger + Ein-Finger-Pan) — vorher gab es mobil
+  GAR keinen Zoom (nur Mausrad). `fan.js` bindInteractions.
+- **Aufklappbares Hauptmenü** (Hamburger-Dropdown) statt flacher Buttonleiste: schließt bei
+  Außenklick/Escape/Auswahl, a11y, mobil sauber. `app.js` + `app.css`.
+- **Mobil-Overflow beseitigt:** Gotha-Zeilen brechen auf schmalen Screens um; `overflow-x:hidden`
+  global. Nach Fix 0px Overflow in allen 6 Ansichten (getestet 390px, Touch, keine Konsolenfehler).
+- **Polish-Pass:** Fächer-Legende bricht um statt abzuschneiden; Fächer füllt den Canvas ausgewogener.
+- **Zeitstrahl (Jahr-Modus):** geprüft — Zoom bleibt beim Slider-Bewegen exakt erhalten (viewBox
+  vorher==nachher), Slider mobil per Touch bedienbar, kein Fehler. Kein Fix nötig.
+- **Profil + Menü mobil geprüft:** kein Overflow, Profil-Panel scrollt intern, Aktionshierarchie
+  klar, Datum menschenlesbar. Kein Fix nötig.
+
+### Neue Regel
+- `.kiro/steering/website-polish.md` (inclusion: manual): vollständiger Website-Polish-Prompt als
+  wiederverwendbare Regel. Aufruf: „Führe den vollständigen Website-Polish nach der Regel aus."
+
+### Weiterhin offen (nur Nutzer)
+1. Familientag-Code in der Verwaltung setzen (Gastzugang). Code NICHT im Chat.
+2. Echte Wohnorte pflegen, damit die Kartenansicht Marker zeigt (aktuell 0 residences → „Keine
+   Wohnorte hinterlegt").
+3. Ggf. Passwort ändern, falls das versehentlich gepostete noch aktiv ist.
+4. Release-Gate weiter „PASS WITH KNOWN GAPS"; voller PASS nach Live-Test Auth/Gast/mobil.
+
+### Neue/geänderte Schlüsseldateien
+`public/js/fan.js` (fitViewBox, currentScale, Pinch, Chips, Hover-Spoke),
+`public/js/tree.js` (toWorld-Fix, debounced), `public/js/map.js` (Kartenansicht),
+`public/js/format.js` (Datum), `public/js/views.js` (6. View + lesbarer Switcher),
+`public/js/app.js` (Menü, Wer-bin-ich-Fix, Zweigauswahl), `public/css/app.css` (Tokens/Typo/Menü/
+Karte/Mobil), `public/index.html` (Leaflet + CSP für OSM/Nominatim), `public/assets/wappen-gossler.png`.
