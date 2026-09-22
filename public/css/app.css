@@ -210,9 +210,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
   .orphan-pill{bottom:70px;left:10px}
   .tree2-minimap{width:96px;height:64px}
   .gotha ul{padding-left:12px}
+  .gotha .row{flex-wrap:wrap}
+  .gotha .yr,.gotha .sp{width:100%;padding-left:34px}
   .profile-panel,.modal-card{padding:14px}
 }
 @media(max-width:360px){
   .view-switch button{padding:7px 8px}
   .nav-toggle{padding:7px 10px;font-size:13px}
 }
+/* Kein horizontales Scrollen der Gesamtseite (interne Canvas scrollen selbst). */
+html,body{overflow-x:hidden}
