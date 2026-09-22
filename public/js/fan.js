@@ -396,7 +396,7 @@ function fitViewBox(size) {
   const cw = c?.clientWidth || 1000;
   const ch = c?.clientHeight || 1000;
   const ar = cw / ch;
-  const pad = size * 0.06;               // etwas Rand rund um den Fächer
+  const pad = size * 0.02;               // knapper Rand -> Fächer füllt ruhiger
   const base = size + pad * 2;
   let w, h;
   if (ar >= 1) { h = base; w = base * ar; } // breiter Container: Breite wächst
